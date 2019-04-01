@@ -23,7 +23,7 @@ public class NetCallbackImpl extends ConnectivityManager.NetworkCallback {
     @Override
     public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
         super.onCapabilitiesChanged(network, networkCapabilities);
-        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){
+        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)){
             if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)){
                 NetDetector.getDefault().post(NetType.WIFI);
             }else {
