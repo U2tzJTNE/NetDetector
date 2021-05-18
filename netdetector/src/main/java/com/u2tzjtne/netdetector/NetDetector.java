@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkRequest;
 import android.os.Build;
 
+
 public class NetDetector {
     private static NetDetector INSTANCE;
     private Application application;
@@ -39,19 +40,16 @@ public class NetDetector {
             if (connectivityManager != null) {
                 connectivityManager.registerNetworkCallback(request, networkCallback);
             }
+        } else {
+            throw new RuntimeException("System version is too low！");
         }
     }
 
-    public Application getApplication() {
+    private Application getApplication() {
         if (application == null) {
             throw new RuntimeException("未初始化");
         }
         return application;
-    }
-
-    //发送
-    public void post(NetType netType) {
-        netManger.post(netType);
     }
 
     //注册

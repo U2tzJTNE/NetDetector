@@ -1,5 +1,7 @@
 package com.u2tzjtne.netdetector;
 
+import com.u2tzjtne.netdetector.entity.NetType;
+
 import java.lang.reflect.Method;
 
 public class NetMethod {
@@ -8,7 +10,7 @@ public class NetMethod {
     //需要执行的方法
     private Method method;
 
-    public NetMethod( NetType netType, Method method) {
+    public NetMethod(NetType netType, Method method) {
         this.netType = netType;
         this.method = method;
     }

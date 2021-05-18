@@ -1,4 +1,4 @@
-package com.u2tzjtne.netdetector.proxy;
+package com.u2tzjtne.netdetector.core;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -10,26 +10,23 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.os.Build;
-import android.util.Log;
+import android.telephony.TelephonyManager;
 
 import com.u2tzjtne.netdetector.entity.IPAddress;
 import com.u2tzjtne.netdetector.entity.NetInfo;
+import com.u2tzjtne.netdetector.entity.NetType;
 import com.u2tzjtne.netdetector.entity.NetworkState;
 
 import static android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET;
 import static android.net.NetworkCapabilities.TRANSPORT_CELLULAR;
-import static com.u2tzjtne.netdetector.detect.NetDetect.getConnectionType;
-import static com.u2tzjtne.netdetector.detect.NetDetect.networkToNetId;
 
-//查询ConnectivityManager  获取当前连接信息
-public class ConnectivityProxy {
+public class NetManger {
 
-    private static final String TAG = "ConnectivityManager";
     private static final int INVALID_NET_ID = -1;
     //在一些系统中connectivityManager 可能为null
     private final ConnectivityManager connectivityManager;
 
-    public ConnectivityProxy(Context context) {
+    public NetManger(Context context) {
         connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
@@ -81,7 +78,7 @@ public class ConnectivityProxy {
     }
 
     //返回当前默认网络的NetID  如果没有连接当前默认网络，则返回INVALID_NET_ID    5.0+
-    @SuppressLint("NewApi")
+    @SuppressLint({"NewApi", "Assert"})
     public long getDefaultNetId() {
         if (!supportNetworkCallback()) {
             return INVALID_NET_ID;
@@ -119,20 +116,74 @@ public class ConnectivityProxy {
         return defaultNetId;
     }
 
+    /**
+     * 返回表示此网络的句柄，以与NDK API一起使用。
+     */
+    @SuppressLint("NewApi")
+    public long networkToNetId(Network network) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return network.getNetworkHandle();
+        } else {
+            return Integer.parseInt(network.toString());
+        }
+    }
+
     @SuppressLint("NewApi")
     public NetInfo networkToInfo(Network network) {
         LinkProperties linkProperties = connectivityManager.getLinkProperties(network);
-        NetInfo netInfo = new NetInfo(
+        return new NetInfo(
                 linkProperties.getInterfaceName(),
                 getConnectionType(getNetworkState(network)),
                 networkToNetId(network),
                 getIPAddresses(linkProperties));
-        return netInfo;
     }
 
-    //如果可以提供Internet访问权限，则返回true 可用于忽略专用网络（例如IMS，FOTA）   5.0+
+    //根据网络信息 获取网络连接类型
+    public NetType getConnectionType(NetworkState networkState) {
+        if (!networkState.isConnected()) {
+            return NetType.NET_NONE;
+        }
+        switch (networkState.getNetworkType()) {
+            case ConnectivityManager.TYPE_ETHERNET:
+                return NetType.NET_ETHERNET;
+            case ConnectivityManager.TYPE_WIFI:
+                return NetType.NET_WIFI;
+            case ConnectivityManager.TYPE_WIMAX:
+                return NetType.NET_4G;
+            case ConnectivityManager.TYPE_BLUETOOTH:
+                return NetType.NET_BLUETOOTH;
+            case ConnectivityManager.TYPE_MOBILE:
+                // 使用TelephonyManager中的信息对连接进行分类
+                switch (networkState.getNetworkSubType()) {
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        return NetType.NET_2G;
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                        return NetType.NET_3G;
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        return NetType.NET_4G;
+                    default:
+                        return NetType.NET_UNKNOWN;
+                }
+            default:
+                return NetType.NET_UNKNOWN;
+        }
+    }
+
+    //如果可以提供Internet访问权限，则返回true 可用于忽略专用网络（例如IMS，FOTA） 5.0+
     @SuppressLint("NewApi")
-    boolean hasInternetCapability(Network network) {
+    private boolean hasInternetCapability(Network network) {
         if (connectivityManager == null) {
             return false;
         }
@@ -173,12 +224,27 @@ public class ConnectivityProxy {
     @SuppressLint("NewApi")
     public void releaseCallback(ConnectivityManager.NetworkCallback networkCallback) {
         if (supportNetworkCallback()) {
-            Log.d(TAG, "Unregister network callback");
             connectivityManager.unregisterNetworkCallback(networkCallback);
         }
     }
 
     public boolean supportNetworkCallback() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && connectivityManager != null;
+    }
+
+
+    public void onNetworkConnect(Network network) {
+
+    }
+
+    public void onNetworkChanged(Network network) {
+
+    }
+
+    public void onNetworkDisconnect(Network network) {
+        NetInfo netInfo = networkToInfo(network);
+        if (netInfo.type != NetType.NET_UNKNOWN
+                && netInfo.type != NetType.NET_NONE) {
+        }
     }
 }

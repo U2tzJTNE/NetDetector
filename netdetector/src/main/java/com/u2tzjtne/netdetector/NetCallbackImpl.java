@@ -7,36 +7,38 @@ import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.u2tzjtne.netdetector.entity.NetType;
+
 //TODO 1. WiFi 数据同时连接的情况下 断开wifi 会调用数据
 //TODO 2. WiFi 数据同时连接的情况下 断开数据 会调用断网
 //TODO 3. 连接wifi  会调用两次wifi连接
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class NetCallbackImpl extends ConnectivityManager.NetworkCallback {
 
+    private NetManger manger;
+
+    public NetCallbackImpl(NetManger manger) {
+        this.manger = manger;
+    }
+
     //连接到一个新的可以使用的网络
     @Override
     public void onAvailable(Network network) {
         super.onAvailable(network);
-        NetDetector.getDefault().post(NetType.ALL);
+        manger.post(NetType.NET_CONNECT);
     }
 
     //网络严重丢失或网络故障
     @Override
     public void onLost(Network network) {
         super.onLost(network);
-        NetDetector.getDefault().post(NetType.NONE);
+        manger.post(NetType.NONE);
     }
 
     @Override
     public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
         super.onCapabilitiesChanged(network, networkCapabilities);
-        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
-            if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                NetDetector.getDefault().post(NetType.WIFI);
-            } else {
-                NetDetector.getDefault().post(NetType.GPRS);
-            }
-        }
+
     }
 
     @Override

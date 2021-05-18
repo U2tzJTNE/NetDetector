@@ -1,9 +1,8 @@
 package com.u2tzjtne.netdetector;
 
-import com.u2tzjtne.netdetector.annotation.Network;
+import com.u2tzjtne.netdetector.entity.NetType;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,16 +58,15 @@ public class NetManger {
             if (network == null) {
                 continue;
             }
-            Type returnType = method.getGenericReturnType();
-            if (!"void".equalsIgnoreCase(returnType.toString())) {
-                throw new RuntimeException(method.getName() + "返回值不为空");
-            }
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length > 0) {
-                throw new RuntimeException(method.getName() + "参数列表大于0");
-            }
-            NetMethod netMethod = new NetMethod(network.netType(), method);
-            list.add(netMethod);
+//            Type returnType = method.getGenericReturnType();
+//            if (!"void".equalsIgnoreCase(returnType.toString())) {
+//                throw new RuntimeException(method.getName() + "返回值不为空");
+//            }
+//            Class<?>[] parameterTypes = method.getParameterTypes();
+//            if (parameterTypes.length > 0) {
+//                throw new RuntimeException(method.getName() + "参数列表大于0");
+//            }
+            list.add(new NetMethod(network.netType(), method));
         }
         return list;
     }

@@ -2,11 +2,9 @@ package com.u2tzjtne.netdetector.entity;
 
 public class NetworkState {
     private final boolean connected;
-    // Defined from ConnectivityManager.TYPE_XXX for non-mobile; for mobile, it is
-    // further divided into 2G, 3G, or 4G from the subtype.
+    //非移动设备
     private final int type;
-    // Defined from NetworkInfo.subtype, which is one of the TelephonyManager.NETWORK_TYPE_XXXs.
-    // Will be useful to find the maximum bandwidth.
+    //移动设备
     private final int subtype;
 
     public NetworkState(boolean connected, int type, int subtype) {

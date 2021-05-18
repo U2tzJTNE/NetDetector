@@ -1,13 +1,13 @@
 package com.u2tzjtne.netdetector.entity;
 
-//网络类型
 public enum NetType {
-    TYPE_UNKNOWN,
-    TYPE_ETHERNET,
-    TYPE_WIFI,
-    TYPE_4G,
-    TYPE_3G,
-    TYPE_2G,
-    TYPE_BLUETOOTH,
-    TYPE_NONE
+    
+    NET_UNKNOWN,
+    NET_ETHERNET,
+    NET_WIFI,
+    NET_4G,
+    NET_3G,
+    NET_2G,
+    NET_BLUETOOTH,
+    NET_NONE
 }
